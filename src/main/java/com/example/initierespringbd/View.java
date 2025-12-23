@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Scanner;
 
 @Component
 public class View {
@@ -23,7 +24,9 @@ public class View {
 
     UserMapper userMapper;
 
-    public View(UserRepository userRepository,UserMapper userMapper){
+    Scanner scanner;
+
+    public View(UserRepository userRepository, UserMapper userMapper, Scanner scanner){
         this.userMapper = userMapper;
         this.userRepository=userRepository;
         this.viewAllUsers();
@@ -38,6 +41,27 @@ public class View {
 //        this.add();
 //        this.delete();
         this.update();
+        this.scanner = scanner;
+        this.play();
+    }
+
+    public void menu(){
+        System.out.println("1->Add user");
+    }
+
+    public void play(Scanner scanner){
+        boolean running = true;
+
+        while(running){
+            menu();
+            int choose = Integer.parseInt(scanner.nextLine());
+
+            switch(choose){
+                case 1:
+                    select1();
+                    break;
+            }
+        }
     }
 
     public void viewAllUsers(){
@@ -169,6 +193,8 @@ public class View {
             userRepository.save(user);
         }
     }
+
+
 
 
 }
