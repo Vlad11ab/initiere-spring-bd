@@ -1,13 +1,17 @@
-
-
 package com.example.initierespringbd;
 
 import com.example.initierespringbd.dtos.UserCreateRequest;
+import com.example.initierespringbd.dtos.UserResponse;
 import com.example.initierespringbd.dtos.UserUpdateRequest;
+import com.example.initierespringbd.exceptions.EmailAlreadyExistsException;
+import com.example.initierespringbd.exceptions.UserNotFoundException;
 import com.example.initierespringbd.mappers.UserMapper;
 import com.example.initierespringbd.model.User;
 import com.example.initierespringbd.repository.UserRepository;
+import com.example.initierespringbd.services.command.UserCommandService;
+import com.example.initierespringbd.services.query.UserQueryService;
 import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.Email;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
@@ -20,36 +24,36 @@ import java.util.Scanner;
 @Component
 public class View {
 
-    UserRepository userRepository;
+    UserCommandService userCommandService;
+    UserQueryService userQueryService;
 
     UserMapper userMapper;
 
     Scanner scanner;
 
-    public View(UserRepository userRepository, UserMapper userMapper, Scanner scanner){
+    public View(UserCommandService userCommandService, UserQueryService userQueryService, UserMapper userMapper, Scanner scanner){
         this.userMapper = userMapper;
-        this.userRepository=userRepository;
-        this.viewAllUsers();
-        this.testSearchBy();
-        this.findUserByLastName();
-        this.findUserByEmail();
-        this.findUsersByAgeRange();
-        this.findUsersHiredBetween();
-        this.search();
-        this.countHiredBefore();
-        this.userExistsByEmail();
-//        this.add();
-//        this.delete();
-        this.update();
+        this.userCommandService = userCommandService;
+        this.userQueryService = userQueryService;
         this.scanner = scanner;
         this.play();
     }
 
     public void menu(){
         System.out.println("1->Add user");
+        System.out.println("2->Update user");
+        System.out.println("3->Delete user");
+        System.out.println("4->Show users");
+        System.out.println("5->Find user by email");
+        System.out.println("6->Find user by last name");
+        System.out.println("7->Find user by emailIgnoreCase");
+        System.out.println("8->Find users between an age range");
+        System.out.println("9->Find users hired between a date range");
+        System.out.println("10->Display the number of people hired before a certain date");
+        System.out.println("11->Find if there there exists a user with a certain email");
     }
 
-    public void play(Scanner scanner){
+    public void play(){
         boolean running = true;
 
         while(running){
@@ -60,139 +64,219 @@ public class View {
                 case 1:
                     select1();
                     break;
+                case 2:
+                    select2();
+                    break;
+                case 3:
+                    select3();
+                    break;
+                case 4:
+                    select4();
+                    break;
+                case 5:
+                    select5();
+                    break;
+                case 6:
+                    select6();
+                    break;
+                case 7:
+                    select7();
+                    break;
+                case 8:
+                    select8();
+                    break;
+                case 9:
+                    select9();
+                    break;
+                case 10:
+                    select10();
+                    break;
+                case 11:
+                    select11();
+                    break;
             }
         }
     }
 
-    public void viewAllUsers(){
-        this.userRepository.findAll().forEach(System.out::println);
+
+
+
+    private void select1(){
+
+        System.out.println("firstName:");
+        String firstName = scanner.nextLine();
+        System.out.println("lastName:");
+        String lastName = scanner.nextLine();
+        System.out.println("email:");
+        String email = scanner.nextLine();
+        System.out.println("age:");
+        int age = Integer.parseInt(scanner.nextLine());
+        System.out.println("hireDate:");
+        LocalDate hireDate = LocalDate.parse(scanner.nextLine());
+        System.out.println("phone:");
+        String phone = scanner.nextLine();
+        System.out.println("password:");
+        String password = scanner.nextLine();
+
+        UserCreateRequest request = new UserCreateRequest(firstName,lastName,email,age,hireDate,phone,password);
+        try{
+            UserResponse response = userCommandService.create(request);
+            System.out.println("Utilizator creat: " + response);
+        } catch(EmailAlreadyExistsException e) {
+            System.out.println(e.getMessage());
+        }
+
     }
 
-    public  void testSearchBy(){
+    private void select2(){
 
-        Optional<User>  userOptional=userRepository.findUserByEmail("ioana.marin@email.com");
+        System.out.println("UserId:");
+        Long userId = Long.parseLong(scanner.nextLine());
+        System.out.println("NewAge:");
+        int newAge = Integer.parseInt(scanner.nextLine());
+        System.out.println("NewEmail:");
+        String newEmail = scanner.nextLine();
+        System.out.println("newPassword:");
+        String newPassword = scanner.nextLine();
+
+        UserUpdateRequest request = new UserUpdateRequest(newAge,newEmail,newPassword);
+        try{
+            UserResponse response = userCommandService.update(userId,request);
+            System.out.println("Utilizator actualizat: " + response);
+        } catch( UserNotFoundException e){
+            System.out.println(e.getMessage());
+        }
+
+    }
+
+    private void select3(){
+        System.out.println("Id-ul utilizatorului de sters:");
+        Long userId = Long.parseLong(scanner.nextLine());
+
+        try{
+            userCommandService.delete(userId);
+            System.out.println("Utilizator sters cu succes");
+        } catch( UserNotFoundException e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void select4(){
+        System.out.println("Lista useri:");
+
+        List<UserResponse> users = userQueryService.findAllUsers();
+
+        if(users.isEmpty()){
+            System.out.println("Lista este goala");
+        }else{
+            users.forEach(System.out::println);
+        }
+    }
+
+    private void select5(){
+        System.out.println("Introdu email:");
+        String email = scanner.nextLine();
+
+        Optional<UserResponse> userOptional = userQueryService.findByEmail(email);
+
+
+        if (userOptional.isPresent()) {
+                System.out.println("User gasit " + userOptional.get());
+        } else {
+                System.out.println("Niciun user cu acest email nu a fost gasit");
+        }
+
+    }
+
+    private void select6(){
+        System.out.println("Last Name:");
+        String lastName = scanner.nextLine();
+
+        Optional<UserResponse> userOptional = userQueryService.findByLastName(lastName);
 
         if(userOptional.isPresent()){
-            System.out.println(userOptional);
-        } else System.out.println("NU EXISTA");
+            System.out.println("User gasit " + userOptional.get());
+        }else{
+            System.out.println("Niciun user cu acest nume de familie nu a fost gasit");
+        }
     }
 
-    public void findUserByLastName(){
+    private void select7(){
+        System.out.println("Introdu email:");
+        String email = scanner.nextLine();
 
-        Optional<User> userOptional = userRepository.findByLastNameIgnoreCaseJPQL("popescu");
+        Optional<UserResponse> userOptional = userQueryService.findByEmailIgnoreCase(email);
 
-        if(userOptional.isPresent()){
-            System.out.println(userOptional);
-        } else System.out.println("Nu exista");
+
+        if (userOptional.isPresent()) {
+            System.out.println("User gasit " + userOptional.get());
+        } else {
+            System.out.println("Niciun user cu acest email nu a fost gasit");
+        }
+
     }
 
-    public void findUserByEmail(){
+    private void select8(){
+        System.out.println("Introdu varsta minima");
+        int minAge = Integer.parseInt(scanner.nextLine());
+        System.out.println("Introdu varsta maxima");
+        int maxAge = Integer.parseInt(scanner.nextLine());
 
-        Optional<User> userOptional = userRepository.findByEmailIgnoreCaseJQPL("");
+        List<UserResponse> users = userQueryService.findByAgeRange(minAge,maxAge);
 
-        if(userOptional.isPresent()){
-            System.out.println(userOptional);
-        } else System.out.println("Nu Exista");
+        if(users.isEmpty()){
+            System.out.println("Niciun user gasit in intervalul de varsta dorit");
+        }else{
+            users.forEach(System.out::println);
+        }
     }
 
-    public void findUsersByAgeRange(){
+    private void select9(){
+        System.out.println("Introdu data de start YYYY-MM-DD");
+        String fromString = scanner.nextLine();
+        LocalDate from = LocalDate.parse(fromString);
+        System.out.println("Introdu data de sfarsit YYYY-MM-DD");
+        String toString = scanner.nextLine();
+        LocalDate to = LocalDate.parse(toString);
 
-        List<User> usersBetween = this.userRepository.findByAgeRange(20,30);
+        List<UserResponse> users = userQueryService.findHiredBetween(from, to);
 
-        if(usersBetween.isEmpty()){
-            System.out.println("Niciun user gasit");
-        } else usersBetween.forEach(System.out::println);
+        if(users.isEmpty()){
+            System.out.println("Nu exista");
+        }else{
+            users.forEach(System.out::println);
+        }
+
     }
 
-    public void findUsersHiredBetween(){
-        LocalDate from = LocalDate.of(2017,9,18);
-        LocalDate to = LocalDate.of(2021,3,15);
+    private void select10(){
+        System.out.println("Introdu o data(YYYY-MM-DD): ");
+        String dateString = scanner.nextLine();
+        LocalDate date = LocalDate.parse(dateString);
 
-        List<User> usersHired = this.userRepository.findHiredBetween(from,to);
-
-        if(usersHired.isEmpty()){
-            System.out.println("Niciun user angajat in perioada aia");
-        } else usersHired.forEach(System.out::println);
-    }
-
-    public void search(){
-
-        Page<User> search = this.userRepository.search("ia", PageRequest.of(0,2)); // sunt 3 persoane cu 'ia'
-        if(search.isEmpty()){
-            System.out.println("Empty");
-        } else search.forEach(System.out::println);
-    }
-
-    public void countHiredBefore(){
-        LocalDate date = LocalDate.of(2018,11,23);
-
-        long usersHiredBefore = this.userRepository.countHiredBefore(date);
+        long usersHiredBefore = userQueryService.countHiredBefore(date);
 
         if(usersHiredBefore == 0){
-            System.out.println("Niciun user angajat inainte de perioada respectiva");
-        } else System.out.println(usersHiredBefore);
-    }
-
-    public void userExistsByEmail(){
-
-        boolean found = this.userRepository.existsByEmailJPQL("elena.stan@email.com");
-
-
-        if(!found) {
-            System.out.println("Doesn't Exist");
-        } else System.out.println("User exists");
-    }
-
-    @Transactional
-    public  void  add(){
-
-        UserCreateRequest userCreateRequest = new UserCreateRequest("Adi","Abdul","abdul@gmail.com",37,LocalDate.now(),"0793827710","parolaparola");
-
-        User user=this.userRepository.save(userMapper.toEntity(userCreateRequest));
-
-        System.out.println(userMapper.toDto(user));
-
-
-    }
-
-
-    @Transactional
-    public  void  delete(){
-       Optional<User> userOptional = userRepository.findById(151L);
-
-       if(userOptional.isPresent()){
-           this.userRepository.delete(userOptional.get());
-
-
-           System.out.println(userMapper.toDto(userOptional.get()));
-
-       }
-    }
-
-    @Transactional
-    public void update(){
-        UserUpdateRequest userUpdateRequest = new UserUpdateRequest(28,"updatedEmail@gmail.com","updatedPassword");
-
-        Optional<User> userOptional = this.userRepository.findById(1L);
-
-        if(userOptional.isPresent()){
-            User user=userOptional.get();
-            if(userUpdateRequest.password().length()>0){
-
-                user.setPassword(userUpdateRequest.password());
-            }
-            if(userUpdateRequest.age()>20){
-                user.setAge(userUpdateRequest.age());
-            }
-            if(userUpdateRequest.email().length()>5){
-                user.setEmail(userUpdateRequest.email());
-            }
-
-
-
-            userRepository.save(user);
+            System.out.println("Nimeni nu a fost angajat inainte de data introdusa");
+        }else{
+            System.out.println(usersHiredBefore + " au fost angajati inainte de date " + date);
         }
     }
+
+    private void select11(){
+        System.out.println("Introdu un email: ");
+        String email = scanner.nextLine();
+
+        boolean userOptional = userQueryService.userExistsByEmail(email);
+
+        if(userOptional){
+            System.out.println("Exista!");
+        }else{
+            System.out.println("Nu exista");
+        }
+    }
+
+    //Mai fa un proiect de la capat la fel ca asta. Dupa ce implementezi restul de functii din query.
 
 
 
