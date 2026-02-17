@@ -2,7 +2,7 @@ package com.example.initierespringbd.services.command.impl;
 
 import com.example.initierespringbd.dtos.UserCreateRequest;
 import com.example.initierespringbd.dtos.UserResponse;
-import com.example.initierespringbd.dtos.UserUpdateRequest;
+import com.example.initierespringbd.dtos.UserPatchRequest;
 import com.example.initierespringbd.exceptions.EmailAlreadyExistsException;
 import com.example.initierespringbd.exceptions.UserNotFoundException;
 import com.example.initierespringbd.mappers.UserMapper;
@@ -21,6 +21,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     public UserCommandServiceImpl(UserRepository userRepository, UserMapper userMapper){
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+
     }
 
     @Override
@@ -36,19 +37,14 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     @Override
     @Transactional
-    public UserResponse update(Long userId, UserUpdateRequest request) {
+    public UserResponse patch(Long userId, UserPatchRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(()-> new UserNotFoundException(userId));
 
         if(request.password() != null && !request.password().isBlank()){
             user.setPassword(request.password());
         }
-        if(request.age()>0){
-            user.setAge(request.age());
-        }
-        if(request.email() != null && !request.email().isBlank() && request.email().length()>5){
-            user.setEmail(request.email());
-        }
+
         User updatedUser = userRepository.save(user);
         return userMapper.toDto(updatedUser);
 

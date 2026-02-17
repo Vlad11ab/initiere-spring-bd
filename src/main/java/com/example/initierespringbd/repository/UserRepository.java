@@ -22,7 +22,7 @@ public interface UserRepository extends JpaRepository<User,Long>, JpaSpecificati
     Optional<User> findByLastNameIgnoreCaseJPQL(@Param("lastName") String lastName);
 
     @Query("select u from User u where lower(u.email) = lower(:email)")
-    Optional<User> findByEmailIgnoreCaseJQPL(@Param("email") String email);
+    Optional<User> findByEmailIgnoreCaseJPQL(@Param("email") String email);
 
     @Query("select u from User u \n" +
             "where u.age between :minAge and :maxAge\n" +

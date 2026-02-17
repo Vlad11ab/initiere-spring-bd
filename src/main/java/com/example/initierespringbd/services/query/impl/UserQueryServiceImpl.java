@@ -46,7 +46,7 @@ public class UserQueryServiceImpl implements UserQueryService {
 
     @Override
     public Optional<UserResponse> findByEmailIgnoreCase(String email) {
-        return userRepository.findByEmailIgnoreCaseJQPL(email)
+        return userRepository.findByEmailIgnoreCaseJPQL(email)
                 .map(userMapper::toDto);
     }
 
