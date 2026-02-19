@@ -1,6 +1,7 @@
 package com.example.initierespringbd.services.command.impl;
 
 import com.example.initierespringbd.dtos.UserCreateRequest;
+import com.example.initierespringbd.dtos.UserPutRequest;
 import com.example.initierespringbd.dtos.UserResponse;
 import com.example.initierespringbd.dtos.UserPatchRequest;
 import com.example.initierespringbd.exceptions.EmailAlreadyExistsException;
@@ -11,6 +12,8 @@ import com.example.initierespringbd.repository.UserRepository;
 import com.example.initierespringbd.services.command.UserCommandService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 
 @Component
 public class UserCommandServiceImpl implements UserCommandService {
@@ -51,10 +54,28 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
     @Override
-    public void delete(Long userId) {
+    public UserResponse update(Long userId, UserPutRequest req) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new UserNotFoundException(userId));
+
+        user.setFirstName("firstNamePut");
+        user.setLastName("lastNamePut");
+        user.setEmail("email@put.com");
+        user.setAge(45);
+        user.setHireDate(LocalDate.now());
+        user.setPhoneNumber("0784938872");
+        user.setPassword("paswordPut");
+
+        User updatedUser = userRepository.save(user);
+        return userMapper.toDto(updatedUser);
+    }
+
+    @Override
+    public UserResponse delete(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
         userRepository.delete(user);
+        return userMapper.toDto(user);
     }
 }

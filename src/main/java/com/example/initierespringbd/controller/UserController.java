@@ -3,6 +3,7 @@ package com.example.initierespringbd.controller;
 
 import com.example.initierespringbd.dtos.UserCreateRequest;
 import com.example.initierespringbd.dtos.UserPatchRequest;
+import com.example.initierespringbd.dtos.UserPutRequest;
 import com.example.initierespringbd.dtos.UserResponse;
 import com.example.initierespringbd.services.command.UserCommandService;
 import com.example.initierespringbd.services.query.UserQueryService;
@@ -47,7 +48,13 @@ public class UserController {
     public ResponseEntity<UserResponse> patchUser(@PathVariable Long userId, @Valid @RequestBody UserPatchRequest patched){
         log.info("HTTP PATCH /api/v1/users2/{}", userId);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(userCommandService.patch(userId,patched));
-    } //updateaza doar parola
+    } //NU MERGE, updateaza doar parola
+
+    @PutMapping("/update/{userId}")
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Long userId, @Valid @RequestBody UserPutRequest updated){
+        log.info("HTTP PUT /api/v1/users2/{}", userId);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(userCommandService.update(userId,updated));
+    }
 
     @DeleteMapping("/delete/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long userId){
