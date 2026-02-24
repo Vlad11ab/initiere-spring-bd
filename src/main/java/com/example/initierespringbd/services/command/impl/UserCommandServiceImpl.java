@@ -58,13 +58,13 @@ public class UserCommandServiceImpl implements UserCommandService {
         User user = userRepository.findById(userId)
                 .orElseThrow(()-> new UserNotFoundException(userId));
 
-        user.setFirstName("firstNamePut");
-        user.setLastName("lastNamePut");
-        user.setEmail("email@put.com");
-        user.setAge(45);
+        user.setFirstName(req.firstName());
+        user.setLastName(req.lastName());
+        user.setEmail(req.email());
+        user.setAge(req.age());
         user.setHireDate(LocalDate.now());
-        user.setPhoneNumber("0784938872");
-        user.setPassword("paswordPut");
+        user.setPhoneNumber(req.phoneNumber());
+        user.setPassword(req.password());
 
         User updatedUser = userRepository.save(user);
         return userMapper.toDto(updatedUser);

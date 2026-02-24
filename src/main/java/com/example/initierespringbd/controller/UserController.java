@@ -50,7 +50,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(userCommandService.patch(userId,patched));
     } //NU MERGE, updateaza doar parola
 
-    @PutMapping("/update/{userId}")
+    @PutMapping("/update/{userId}") //ia din queryservice
     public ResponseEntity<UserResponse> updateUser(@PathVariable Long userId, @Valid @RequestBody UserPutRequest updated){
         log.info("HTTP PUT /api/v1/users2/{}", userId);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(userCommandService.update(userId,updated));
